@@ -69,7 +69,7 @@ public:
     /**
      * Turn on pixel at position (x,y).
      */
-    void setPixel(byte x, byte y);
+    void setPixel(int8_t x, int8_t y);
     
     /**
      * Clear the frame buffer.
@@ -77,6 +77,16 @@ public:
     void clear();
     
     /**
+     * Draw rectangle at position (x0, y0) - (x1, y1), including borders.
+     */
+    void drawRectangle(int8_t x0, int8_t y0, int8_t x1, int8_t y1);
+
+    /**
+     * Draw line between position (x0, y0) and (x1, y1), including endpoints.
+     */
+    void drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1);
+
+	/**
      * Draw the currently set text at the current offset.
      */
     void drawText();
@@ -101,6 +111,11 @@ public:
      * Writes the framebuffer to the displays.
      */
     void commit();
+    
+    /**
+     * Writes the framebuffer to the displays in chained mode (horizontal):
+     */
+    void commith();
     
     /**
      * Scroll the text to the right.
