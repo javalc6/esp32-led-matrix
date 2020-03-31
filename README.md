@@ -1,3 +1,10 @@
+New features added on top of nhatuan84 library:
+- Support for 90 degree rotated displays -> use commith() instead of commit()
+- Support for graphics primitives:
+    void drawRectangle(int8_t x0, int8_t y0, int8_t x1, int8_t y1);
+    void drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1);
+
+==================================================================================
 visit IOTSHARING.COM for more
 
 This library is only for MAX7219.
