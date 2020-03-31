@@ -99,11 +99,26 @@ void LedMatrix::clear() {
     
 }
 
-void LedMatrix::commit() {
+void LedMatrix::commit() { //basic commit - in case of visualization issues, try to use commith()
     for (byte col = 0; col < myNumberOfDevices * 8; col++) {
         sendByte(col / 8, col % 8 + 1, cols[col]);
     }
 }
+
+void LedMatrix::commith() { //commit for chained devices (horizontal) 
+	byte temp_cols[myNumberOfDevices * 8];
+	for (byte col = 0; col < myNumberOfDevices * 8; col++) {
+		int digit = col / 8;
+		int column = col % 8;
+		for (byte row = 0; row < 8; row++) {
+			bitWrite(temp_cols[7 - row  + (digit * 8)], column, bitRead(cols[column + (myNumberOfDevices - 1 - digit) * 8], row)); 
+		}
+    }
+	for (byte col = 0; col < myNumberOfDevices * 8; col++) {
+        sendByte(col / 8, col % 8 + 1, temp_cols[col]);
+    }
+}
+
 
 void LedMatrix::setText(String text) {
     myText = text;
@@ -143,13 +158,32 @@ void LedMatrix::oscillateText() {
     myTextOffset += increment;
 }
 
+void LedMatrix::drawRectangle(int8_t x0, int8_t y0, int8_t x1, int8_t y1) {
+	byte tpl;
+	for (int y = y0; y <= y1; y++)
+		bitWrite(tpl, y, true);
+    for (int column = x0; column <= x1; column++)
+		setColumn(column, tpl);
+}
+
+void LedMatrix::drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1) { 
+	int8_t dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int8_t dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1; 
+	int8_t err = (dx > dy ? dx : -dy) / 2, e2;
+	for (;;) {
+		bitWrite(cols[x0], y0, true);
+		if (x0 == x1 && y0 == y1) break;
+		e2 = err;
+		if (e2 >-dx) { err -= dy; x0 += sx; }
+		if (e2 < dy) { err += dx; y0 += sy; }
+	}
+}
+
 void LedMatrix::drawText() {
-    char letter;
-    int position = 0;
     for (int i = 0; i < myText.length(); i++) {
-        letter = myText.charAt(i);
+        char letter = myText.charAt(i);
         for (byte col = 0; col < 8; col++) {
-            position = i * myCharWidth + col + myTextOffset + myTextAlignmentOffset;
+            int position = i * myCharWidth + col + myTextOffset + myTextAlignmentOffset;
             if (position >= 0 && position < myNumberOfDevices * 8) {
                 setColumn(position, pgm_read_byte (&cp437_font [letter] [col]));
             }
@@ -158,12 +192,11 @@ void LedMatrix::drawText() {
 }
 
 void LedMatrix::setColumn(int column, byte value) {
-    if (column < 0 || column >= myNumberOfDevices * 8) {
-        return;
-    }
-    cols[column] = value;
+    if (column >= 0 && column < myNumberOfDevices * 8)
+	    cols[column] = value;
 }
 
-void LedMatrix::setPixel(byte x, byte y) {
+void LedMatrix::setPixel(int8_t x, int8_t y) {
     bitWrite(cols[x], y, true);
 }
+
