@@ -21,6 +21,10 @@
 #define TEXT_ALIGN_RIGHT         2 // End of text is aligned to the right of the display
 #define TEXT_ALIGN_RIGHT_END     3 // End of text is just outside the left side of the display
 
+//type of font
+#define FONT_cp437   0 //cp437 font
+#define FONT_5x7     1 //5x7 ascii font
+
 class LedMatrix {
     
 public:
@@ -31,6 +35,8 @@ public:
      * slaveSelectPin: CS (or SS) pin connected to your ESP8266
      */
     LedMatrix(byte numberOfDisplays, int8_t sck, int8_t miso, int8_t mosi, byte slaveSelectPin);
+	// New constructor enhanced with font selector
+	LedMatrix(byte numberOfDevices, int8_t sck, int8_t miso, int8_t mosi, byte slaveSelectPin, byte font);
     
     /**
      * Initializes the SPI interface
@@ -145,6 +151,7 @@ private:
     byte mySlaveSelectPin = 0;
     byte myCharWidth = 7;
     byte myTextAlignment = 1;
+    byte myFont = 0;
     int8_t _sck;
     int8_t _miso;
     int8_t _mosi;

@@ -1,13 +1,27 @@
 #include <SPI.h>
 #include "LedMatrix.h"
 #include "cp437font.h"
+#include "5x7font.h"
 
 /**
- * Heavily influenced by the code and the blog posts from https://github.com/nickgammon/MAX7219_Dot_Matrix
+ * Based on code from https://github.com/nhatuan84/esp32-led-matrix
  */
 LedMatrix::LedMatrix(byte numberOfDevices, int8_t sck, int8_t miso, int8_t mosi, byte slaveSelectPin) {
     myNumberOfDevices = numberOfDevices;
     mySlaveSelectPin = slaveSelectPin;
+    cols = new byte[numberOfDevices * 8];
+    _sck = sck;
+    _miso = miso;
+    _mosi = mosi;
+}
+
+LedMatrix::LedMatrix(byte numberOfDevices, int8_t sck, int8_t miso, int8_t mosi, byte slaveSelectPin, byte font) {
+    myNumberOfDevices = numberOfDevices;
+    mySlaveSelectPin = slaveSelectPin;
+	myFont = font;
+	if (font == FONT_5x7) {
+		myCharWidth = 5;
+	}
     cols = new byte[numberOfDevices * 8];
     _sck = sck;
     _miso = miso;
@@ -180,14 +194,17 @@ void LedMatrix::drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1) {
 }
 
 void LedMatrix::drawText() {
+	byte font_width = myFont == FONT_5x7 ? 5 : 8;
     for (int i = 0; i < myText.length(); i++) {
         char letter = myText.charAt(i);
-        for (byte col = 0; col < 8; col++) {
-            int position = i * myCharWidth + col + myTextOffset + myTextAlignmentOffset;
-            if (position >= 0 && position < myNumberOfDevices * 8) {
-                setColumn(position, pgm_read_byte (&cp437_font [letter] [col]));
-            }
-        }
+		if ((myFont != FONT_5x7) || (letter < 128)) {//in case of FONT_5x7 we must check that letter < 128
+			for (byte col = 0; col < font_width; col++) {
+				int position = i * myCharWidth + col + myTextOffset + myTextAlignmentOffset;
+				if (position >= 0 && position < myNumberOfDevices * 8) {
+					setColumn(position, pgm_read_byte (myFont == FONT_5x7 ? &font_5x7[letter][col] : &cp437_font[letter][col]));
+				}
+			}
+		}
     }
 }
 
